@@ -12,7 +12,8 @@
 
 ## 🏗️ Project Architecture
 
-![Faster R-CNN Architecture](assets/frcnnr50_architecture.png)
+![System Architecture](test_outputs/output_facenet.jpg)
+
 
 ---
 
