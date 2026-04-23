@@ -12,7 +12,7 @@
 
 ## 🏗️ Project Architecture
 
-![System Architecture](assets/image.png)
+![Faster R-CNN Architecture](assets/frcnnr50_architecture.png)
 
 ---
 
