@@ -5,7 +5,6 @@ augmented_dataset/
 dataset/
 bulk_results/
 test_outputs/
-plots/
 archive/
 
 # ========================
@@ -55,3 +54,5 @@ __pycache__/
 # ========================
 .DS_Store
 Thumbs.db
+*.zip 
+plots/ 
