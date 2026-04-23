@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Attendance System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="gov-header">
+        <div class="header-container">
+            <h1 class="logo">Official Face Recognition Attendance System</h1>
+            <p class="subtitle">Secure Department of Education Portal</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        
+        <!-- Left Column: Camera Feed -->
+        <section class="camera-section">
+            <div class="panel">
+                <h2>Live Scanner</h2>
+                <div class="video-container">
+                    <img src="{{ url_for('video_feed') }}" alt="Live Camera Feed" class="video-feed">
+                </div>
+                <div class="status-bar">
+                    <span class="status-dot"></span> System Online & Recording
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Controls and Table -->
+        <section class="controls-section">
+            <div class="panel">
+                <h2>Settings & Session</h2>
+                <div class="controls">
+                    <div class="form-group">
+                        <label for="periodSelect">Current Period:</label>
+                        <select id="periodSelect" onchange="updatePeriod()">
+                            <option value="Period 1">Period 1</option>
+                            <option value="Period 2">Period 2</option>
+                            <option value="Period 3">Period 3</option>
+                            <option value="Period 4">Period 4</option>
+                            <option value="Period 5">Period 5</option>
+                            <option value="Period 6">Period 6</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-danger" onclick="resetAttendance()">Reset Attendance Data</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Live Attendance Roster</h2>
+                <div class="table-container">
+                    <table class="gov-table" id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Time Present</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="gov-footer">
+        <p>&copy; 2026 Department of AI Systems. Secure Access Only.</p>
+    </footer>
+
+    <!-- JavaScript to Poll the API -->
+    <script>
+        // Set initial state
+        async function fetchState() {
+            try {
+                const response = await fetch('/api/state');
+                const data = await response.json();
+                
+                // Update select dropdown gracefully if needed
+                const selectElement = document.getElementById('periodSelect');
+                if (selectElement.value !== data.current_period) {
+                    selectElement.value = data.current_period;
+                }
+
+                // Populate Table
+                const tbody = document.querySelector('#attendanceTable tbody');
+                tbody.innerHTML = ''; // clear
+
+                if (Object.keys(data.attendance).length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="3" style="text-align: center; color: #555;">No records for this period</td>`;
+                    tbody.appendChild(tr);
+                } else {
+                    for (const [name, time] of Object.entries(data.attendance)) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${name}</strong></td>
+                            <td><span class="badge badge-success">Present</span></td>
+                            <td>${time}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching state:", error);
+            }
+        }
+
+        async function updatePeriod() {
+            const periodValue = document.getElementById('periodSelect').value;
+            await fetch('/api/period', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ period: periodValue })
+            });
+            fetchState(); // refresh
+        }
+
+        async function resetAttendance() {
+            if (confirm("Are you sure you want to clear the attendance records for the current period?")) {
+                await fetch('/api/reset', { method: 'POST' });
+                fetchState(); // refresh
+            }
+        }
+
+        // Poll every 3 seconds to update attendance live without reloading the camera stream
+        setInterval(fetchState, 3000);
+        // Initial fetch
+        fetchState();
+    </script>
+</body>
+</html>
